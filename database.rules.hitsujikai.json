@@ -1,0 +1,107 @@
+{
+  "runs": {
+    "$uid": {
+      ".write": "auth != null && auth.uid === $uid && newData.exists() && (!data.exists() || now - data.child('t').val() >= 1000)",
+      ".validate": "newData.hasChildren(['t'])",
+      "t": {
+        ".validate": "newData.val() === now"
+      },
+      "$other": {
+        ".validate": false
+      },
+      ".read": "auth != null && auth.uid === $uid"
+    }
+  },
+  "all": {
+    "scores": {
+      ".read": true,
+      ".indexOn": [
+        "s"
+      ],
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid && newData.exists() && ((newData.child('st').val() === root.child('hitsujikai/runs/' + $uid + '/t').val() && (!data.exists() || (newData.child('st').val() > data.child('st').val() && newData.child('s').val() > data.child('s').val())) && now >= newData.child('st').val() + newData.child('s').val() * 80 - 2000 && now <= newData.child('st').val() + newData.child('s').val() * 1500 + 120000) || (data.exists() && newData.child('st').val() === data.child('st').val() && newData.child('s').val() === data.child('s').val() && newData.child('oj').val() === data.child('oj').val() && newData.child('n').val() !== data.child('n').val()))",
+        ".validate": "newData.hasChildren(['n', 's', 'st', 'oj', 'v', 't'])",
+        "n": {
+          ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 12"
+        },
+        "s": {
+          ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 1 && newData.val() <= 3000"
+        },
+        "st": {
+          ".validate": "newData.isNumber()"
+        },
+        "oj": {
+          ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0 && newData.val() <= 1000"
+        },
+        "v": {
+          ".validate": "newData.val() === 1"
+        },
+        "t": {
+          ".validate": "newData.val() === now"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    }
+  },
+  "d": {
+    "scores": {
+      ".read": true,
+      ".indexOn": [
+        "dk",
+        "ds"
+      ],
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid && newData.exists() && ((newData.child('st').val() === root.child('hitsujikai/runs/' + $uid + '/t').val() && (!data.exists() || newData.child('dk').val() > data.child('dk').val() || (newData.child('dk').val() === data.child('dk').val() && newData.child('st').val() > data.child('st').val() && newData.child('s').val() > data.child('s').val())) && now >= newData.child('st').val() + newData.child('s').val() * 80 - 2000 && now <= newData.child('st').val() + newData.child('s').val() * 1500 + 120000) || (data.exists() && newData.child('st').val() === data.child('st').val() && newData.child('s').val() === data.child('s').val() && newData.child('oj').val() === data.child('oj').val() && newData.child('dk').val() === data.child('dk').val() && newData.child('n').val() !== data.child('n').val()))",
+        ".validate": "newData.hasChildren(['n', 's', 'st', 'oj', 'v', 't', 'dk'])",
+        "n": {
+          ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 12"
+        },
+        "s": {
+          ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 1 && newData.val() <= 3000"
+        },
+        "st": {
+          ".validate": "newData.isNumber()"
+        },
+        "oj": {
+          ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0 && newData.val() <= 1000"
+        },
+        "v": {
+          ".validate": "newData.val() === 1"
+        },
+        "t": {
+          ".validate": "newData.val() === now"
+        },
+        "dk": {
+          ".validate": "newData.isNumber() && newData.val() * 86400000 <= now + 32400000 && now + 32400000 < (newData.val() + 1) * 86400000"
+        },
+        "ds": {
+          ".validate": "newData.isNumber() && newData.val() === newData.parent().child('dk').val() * 1000000 + newData.parent().child('s').val()"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    }
+  },
+  "oji": {
+    "$uid": {
+      ".write": "auth != null && auth.uid === $uid && newData.exists() && (!data.exists() || now - data.child('t').val() >= 2000)",
+      ".validate": "newData.hasChildren(['t'])",
+      "t": {
+        ".validate": "newData.val() === now"
+      },
+      "$other": {
+        ".validate": false
+      }
+    },
+    ".read": true,
+    ".indexOn": [
+      "t"
+    ]
+  },
+  "hidden": {
+    ".read": true
+  }
+}
