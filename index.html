@@ -631,7 +631,7 @@ async function fbAuth0(){
  if(!r.ok)throw new Error('auth');const j=await r.json();a={uid:j.localId,token:j.idToken,refresh:j.refreshToken,exp:Date.now()+(+j.expiresIn)*1000};ls.set('hj_auth',a);return a;}
 if(!PV&&!OGP&&!ICON)fbAuth().catch(()=>{});
 const DB=p=>FB.databaseURL+'/hitsujikai/'+p;
-const QA=a=>'.json?auth='+encodeURIComponent(a.token);
+const QA=a=>'.json?auth='+encodeURIComponent(a.token);const QJ=QA,DBROOT=FB.databaseURL+'/hitsujikai';
 const PUT=(url,body)=>fetchR(url,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
 // ずる対策：始めた瞬間にサーバーの時計を書く。記録は「分けた数に見合う時間」が実際にたっていないと載らない
 function takeTicket(){if(PV)return Promise.resolve(Date.now());
@@ -664,8 +664,10 @@ $('renameBtn').onclick=async()=>{const nm=$('rName').value.trim(),m=$('sendMsg')
   m.textContent=t('renamed');m.className='note ok';$('rName').hidden=true;$('renameBtn').hidden=true;}catch(e){m.textContent=t('senderr');m.className='note err';}
  $('renameBtn').disabled=false;};
 let ojiN=0;
+async function cntNum(X,daily){try{if(daily){const r=await fetchR(DB(X+'t')+'.json');if(!r.ok)return 0;const j=await r.json();return j&&j.dk===dayKey(Date.now())?(+j.n||0):0;}const r=await fetchR(DB(X+'c')+'.json');if(!r.ok)return 0;const j=await r.json();return +j||0;}catch(e){return 0;}}
+async function cntPut(X,a,rec){let ok=false;try{const [c,z]=await Promise.all([fetchR(DB(X+'/'+a.uid)+'.json').then(r=>r.ok?r.json():null),fetchR(DB(X+'t')+'.json').then(r=>r.ok?r.json():null)]);const today=dayKey(Date.now()),d0=today*86400000-32400000;const body={};body[X+'/'+a.uid]=rec;if(!c)body[X+'c']={'.sv':{increment:1}};if(!c||!(c.t>=d0)){if(z&&z.dk===today)body[X+'t/n']={'.sv':{increment:1}};else body[X+'t']={dk:today,n:1};}const r=await fetchR(DBROOT+QJ(a),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});ok=r.ok;}catch(_){}if(!ok){const r=await fetchR(DB(X+'/'+a.uid)+QJ(a),{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(rec)});if(!r.ok)throw new Error('put '+r.status);}}
 async function countOf(p,since){const url=since?DB(p)+'.json?orderBy=%22t%22&startAt='+since:DB(p)+'.json?shallow=true';const r=await fetchR(url);if(!r.ok)return 0;const j=await r.json();return j?Object.keys(j).length:0;}
-async function sendOji(){if(PV){ojiN=3;return;}try{const a=await fbAuth();await PUT(DB('oji/'+a.uid)+QA(a),{t:{'.sv':'timestamp'}});ojiN=await countOf('oji');if(mode==='result'&&resKind==='oji')$('sendMsg').textContent=t('ojiCount',{n:ojiN.toLocaleString()});}catch(e){console.warn(e);}}
+async function sendOji(){if(PV){ojiN=3;return;}try{const a=await fbAuth();await cntPut('oji',a,{t:{'.sv':'timestamp'}});ojiN=await cntNum('oji',false);if(mode==='result'&&resKind==='oji')$('sendMsg').textContent=t('ojiCount',{n:ojiN.toLocaleString()});}catch(e){console.warn(e);}}
 async function loadBoard(board){const today=dayKey(Date.now());
  const url=board==='d'?DB('d/scores')+'.json?orderBy=%22ds%22&startAt='+(today*DS)+'&endAt='+(today*DS+DS-1)+'&limitToLast='+TOPN:DB('all/scores')+'.json?orderBy=%22s%22&limitToLast='+TOPN;
  const [d,h]=await Promise.all([fetch(url).then(r=>{if(!r.ok)throw 0;return r.json()}),fetch(DB('hidden')+'.json').then(r=>r.ok?r.json():null).catch(()=>null)]);
@@ -679,7 +681,7 @@ async function openRank(board,fromResult){rankFrom=!!fromResult;show('rankPanel'
  const box=$('rankBox');box.innerHTML='<p>'+t('loading')+'</p>';
  if(PV){box.innerHTML='<table class="rank">'+ojiRowH(3)+rowH({n:myName(),s:bestN||42,oj:3},0,true)+'</table>';return;}
  try{const since=board==='d'?(dayKey(Date.now())*86400000-32400000):0;
-  const [rows,qn]=await Promise.all([loadBoard(board),countOf('oji',since||undefined).catch(()=>0)]);const myId=(ls.get('hj_auth',null)||{}).uid;
+  const [rows,qn]=await Promise.all([loadBoard(board),cntNum('oji',board==='d')]);const myId=(ls.get('hj_auth',null)||{}).uid;
   let h='<table class="rank">'+ojiRowH(qn);h+=rows.slice(0,TOPN).map((r,i)=>rowH(r,i,r.id===myId)).join('');
   if(!rows.length)h+='<tr><td></td><td colspan="2">'+t('empty')+'</td></tr>';box.innerHTML=h+'</table>';
  }catch(e){box.innerHTML='<p>'+t('rankerr')+'</p>';}}

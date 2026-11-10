@@ -49,5 +49,16 @@ ex('おじさんに任せた人の数を読める',await req('GET',P+'oji',null)
 ex('ほかの人の始めた時刻は読めない',await req('GET',P+'runs/'+U,U2),false);
 ex('hidden に書く',await req('PUT',P+'hidden/'+U,U,true),false);
 ex('ほかのゲームの場所に書く',await req('PUT','bisu/ruler/'+U,U,{t:TS}),false);
+// 人数カウンターの試験
+{const INC={'.sv':{increment:1}};
+ex('oji: はじめてで数を増やす',await req('PATCH','hitsujikai','cnt0axxxxxxxxxxxxxxxx',{['oji/'+'cnt0axxxxxxxxxxxxxxxx']:{t:TS},'ojic':INC,'ojit':{dk:dk(),n:1}}),true);
+ex('oji: 記録なしで数だけ増やす',await req('PUT','hitsujikai/ojic','cnt0byyyyyyyyyyyyyyyy',5),false);
+await sleep(2100);
+ex('oji: 2回目で全期間を増やす',await req('PATCH','hitsujikai','cnt0axxxxxxxxxxxxxxxx',{['oji/'+'cnt0axxxxxxxxxxxxxxxx']:{t:TS},'ojic':INC}),false);
+ex('oji: ほかの人のはじめて',await req('PATCH','hitsujikai','cnt0byyyyyyyyyyyyyyyy',{['oji/'+'cnt0byyyyyyyyyyyyyyyy']:{t:TS},'ojic':INC,'ojit/n':INC}),true);
+ex('oji: 今日の数を1にもどす',await req('PATCH','hitsujikai','cnt0czzzzzzzzzzzzzzzz',{['oji/'+'cnt0czzzzzzzzzzzzzzzz']:{t:TS},'ojic':INC,'ojit':{dk:dk(),n:1}}),false);
+ex('oji: ちがう日で書く',await req('PATCH','hitsujikai','cnt0czzzzzzzzzzzzzzzz',{['oji/'+'cnt0czzzzzzzzzzzzzzzz']:{t:TS},'ojic':INC,'ojit':{dk:dk()-1,n:1}}),false);
+{const c=await req('GET','hitsujikai/ojic',null),z=await req('GET','hitsujikai/ojit',null);if(c.j!==2||!z.j||z.j.n!==2){fail++;console.log('NG  oji: 数が合いません',c.j,JSON.stringify(z.j));}else console.log('OK  oji: 全期間2・今日2');}
+}
 console.log(fail?('失敗 '+fail+' 件'):'すべて合格');
 if(fail)process.exit(1);
