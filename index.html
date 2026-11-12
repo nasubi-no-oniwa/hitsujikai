@@ -202,6 +202,13 @@ if(document.body)go();else document.addEventListener('DOMContentLoaded',go);
 </div>
 
 <script type="module">
+
+// Xの投稿で引用するツイート（なすびのお庭の管理ページ quote/ で日本語・英語を貼りかえられる）
+var NQ=window.__nq||(window.__nq={q:{}});if(!NQ.f){NQ.f=1;fetch('https://ft-red-default-rtdb.asia-southeast1.firebasedatabase.app/xquote/g/hitsujikai.json').then(r=>r.json()).then(d=>{if(d&&typeof d==='object')NQ.q=d;}).catch(()=>{});}
+function quoteURL(){let l='';try{if(typeof lang==='string')l=lang;}catch(e){}if(!l)l=document.documentElement.lang||'ja';const u=(l.slice(0,2)==='ja'?NQ.q.ja:NQ.q.en)||'';return /^https:\/\/x\.com\/[A-Za-z0-9_]{1,15}\/status\/\d{5,25}$/.test(u)?u:'';}
+function xIntent(text,url){const q=quoteURL();return 'https://x.com/intent/post?text='+encodeURIComponent(q?text+'\n'+url:text)+'&url='+encodeURIComponent(q||url);}
+function xIntentT(text){const q=quoteURL();return 'https://x.com/intent/post?text='+encodeURIComponent(text)+(q?'&url='+encodeURIComponent(q):'');}
+function nqS(o){const q=quoteURL();if(!q||!o)return o;o=Object.assign({},o);o.text=(o.text||'')+(o.url?'\n'+o.url:'')+'\n'+q;delete o.url;return o;}
 import * as THREE from 'three';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 const $=id=>document.getElementById(id);
@@ -602,7 +609,7 @@ function postText(){if(resKind==='oji')return t('postOji',{n:G.n||nOk})+'\n'+t('
 // 結果ごとのページ（s/匹数.html）。リンクに「〇匹分けた」の画像が出て、人が開くとゲームへ移る
 const SHARE_MAX=150,SHARE_PLUS=[150,200,250,300,400,500,700,1000];
 function shareURL(){const S2=GAME_URL+'s/'+(lang==='ja'?'':'en/');if(resKind==='oji')return S2+'oji.html';const n=Math.max(0,G.n|0);if(n<=SHARE_MAX)return S2+n+'.html';let m=SHARE_PLUS[0];for(const k of SHARE_PLUS)if(n>=k)m=k;return S2+m+'p.html';}
-const openX=()=>{const u='https://x.com/intent/post?text='+encodeURIComponent(postText())+'&url='+encodeURIComponent(shareURL());const w=window.open(u,'_blank');if(!w)location.href=u;};
+const openX=()=>{const u=xIntent(postText(),shareURL());const w=window.open(u,'_blank');if(!w)location.href=u;};
 $('xBtn').onclick=openX;$('vX').onclick=openX;
 
 // ===== 失敗動画 =====
@@ -645,7 +652,7 @@ function vidDone(blob){vidBusy=false;mode='result';show('vidPanel');
  $('vidPrev').hidden=false;const url=URL.createObjectURL(blob);$('vidPrev').src=url;$('vidPrev').play().catch(()=>{});
  const file=new File([blob],'hitsujikai_'+G.n+'.'+vidExt,{type:blob.type});const canShare=!!(navigator.canShare&&navigator.canShare({files:[file]}));
  $('vShare').hidden=!canShare;$('vSave').hidden=false;$('vMsg').textContent=canShare?t('vmade'):t('shareHint');
- $('vShare').onclick=async()=>{try{await navigator.share({files:[file],text:postText()+'\n'+shareURL()});}catch(e){}};
+ $('vShare').onclick=async()=>{try{await navigator.share(nqS({files:[file],text:postText()+'\n'+shareURL()}));}catch(e){}};
  $('vSave').onclick=()=>{const a=document.createElement('a');a.href=url;a.download='hitsujikai_'+G.n+'.'+vidExt;document.body.appendChild(a);a.click();a.remove();};}
 
 // ===== ランキング（Firebase：ft-green の hitsujikai の下） =====
